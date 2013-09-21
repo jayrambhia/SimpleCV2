@@ -261,6 +261,8 @@ class DisplayBase:
         """
         if(DisplayBase.screen == self):
             DisplayBase.screen = None
+            
+        self.done = True
     
     
     def isDone(self):

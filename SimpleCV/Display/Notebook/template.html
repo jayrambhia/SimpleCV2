@@ -5,15 +5,21 @@
         <script>
             function show(id,w,h)
             {
-                id10 = id%10;
+                id10 = id%__cache__;
                 var c=document.getElementById('id_canvas');
                 c.width = w;
                 c.height = h;
                 con = c.getContext('2d');
-                var url = 'http://' + document.domain + ':18109/display/' + id10 + '.png?ref=' + id;
+                /* 
+                So that each image with its unique id gets a unique URL
+                Browser will cache the image with this URL, 
+                Though the URL is unique the actual files being accessed are only a few,
+                limited by __cache__
+                */ 
+                var url = 'http://' + document.domain + ':__port__/display/' + id10 + '.png?ref=' + id;
                 var img = new Image();
                 img.onload = function() {
-                    con.drawImage(img, 10, 10);
+                    con.drawImage(img, 1, 1);
                     con.stroke();
                 };
                 img.src = url;
