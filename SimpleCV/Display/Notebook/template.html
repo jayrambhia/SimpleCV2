@@ -3,13 +3,27 @@
     <head>
         <title>SimpleCV</title>
         <script>
+            CODE = '';
+            
+            var script = document.createElement('script');
+            script.setAttribute('type', 'text/javascript');
+            var url = 'http://' + document.domain + ':__port__/static/' + 'processing-1.4.1.min.js';
+            script.setAttribute('src', url);
+            document.getElementsByTagName('head')[0].appendChild(script);
+            
+            var script = document.createElement('script');
+            script.setAttribute('type', 'text/javascript');
+            var url = 'http://' + document.domain + ':__port__/static/' + 'util.js';
+            script.setAttribute('src', url);
+            document.getElementsByTagName('head')[0].appendChild(script);
+            
             function show(id,w,h)
             {
                 id10 = id%__cache__;
-                var c=document.getElementById('id_canvas');
-                c.width = w;
-                c.height = h;
-                con = c.getContext('2d');
+                var canvas = document.getElementById('id_canvas');
+                canvas.width = w;
+                canvas.height = h;
+                context = canvas.getContext('2d');
                 /* 
                 So that each image with its unique id gets a unique URL
                 Browser will cache the image with this URL, 
@@ -17,12 +31,14 @@
                 limited by __cache__
                 */ 
                 var url = 'http://' + document.domain + ':__port__/display/' + id10 + '.png?ref=' + id;
-                var img = new Image();
-                img.onload = function() {
-                    con.drawImage(img, 1, 1);
-                    con.stroke();
-                };
-                img.src = url;
+                
+                var drawCode = 'void draw() { if ( reqImg.width > 0 ) { background(reqImg);drawShapes();} }';
+                var initCode = 'PImage reqImg;';
+                var drawShapesCode = 'void drawShapes(){' + CODE + '}';
+                var setupCode = 'void setup() { size(512,512); reqImg = requestImage(' + quote(url) + '); }';
+                var code = initCode + setupCode + drawShapesCode + drawCode;
+                new Processing(canvas,code);
+                
             }
         </script>
     </head>

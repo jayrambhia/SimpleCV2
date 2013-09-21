@@ -2020,7 +2020,7 @@ class Image:
             return self.getNumpy().tostring()
         return self.toRGB().getNumpy().tostring()
 
-    def save(self, filehandle_or_filename="", mode="", verbose=False, temp=False, path=None, filename=None, cleanTemp=False ,**params):
+    def save(self, filehandle_or_filename="", mode="",draw = True, verbose=False, temp=False, path=None, filename=None, cleanTemp=False ,**params):
         """
         **SUMMARY**
 
@@ -2040,6 +2040,8 @@ class Image:
         * *filehandle_or_filename* - the filename to which to store the file. The method will infer the file type.
 
         * *mode* - This flag is used for saving using pul.
+
+        * *draw* - If draw is True the drawings are drawn before saving the image.
 
         * *verbose* - If this flag is true we return the path where we saved the file.
 
@@ -2113,8 +2115,11 @@ class Image:
             else:
                 filehandle_or_filename = self.filehandle
 
-        if (len(self._mLayers)):
-            saveimg = self.applyLayers()
+        if draw:
+            if (len(self._mLayers)):
+                saveimg = self.applyLayers()
+            else:
+                saveimg = self
         else:
             saveimg = self
 
