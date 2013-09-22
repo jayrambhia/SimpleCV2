@@ -35,7 +35,7 @@
                 var drawCode = 'void draw() { if ( reqImg.width > 0 ) { background(reqImg);drawShapes();} }';
                 var initCode = 'PImage reqImg;';
                 var drawShapesCode = 'void drawShapes(){' + CODE + '}';
-                var setupCode = 'void setup() { size(512,512); reqImg = requestImage(' + quote(url) + '); }';
+                var setupCode = 'void setup() { size(' + w + ',' + h + '); reqImg = requestImage(' + quote(url) + '); }';
                 var code = initCode + setupCode + drawShapesCode + drawCode;
                 new Processing(canvas,code);
                 
