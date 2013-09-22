@@ -9,6 +9,23 @@ import os
 import threading
 import tempfile
 import tornado.testing
+from ..Base import Line,Circle,Rectangle,Polygon,Ellipse,Bezier,Text
+
+
+def getPCode(img):
+    code = 'size(%d,%d);' % (img.width,img.height)
+    for layer in img.layers():
+        for shape in layer.shapes():
+            code += 'stroke(%d,%d,%d,%d);' % (shape.color + (shape.alpha,))
+            code += 'strokeWeight(%d);' % shape.width
+            if shape.antialias :
+                code += 'smooth();'
+            else:
+                code += 'noSmooth();'
+                
+            if type(shape) is Line :
+                code += 'line(%d,%d,%d,%d);' % (shape.start + shape.stop)
+    return code
 
 
 class NBDisplay(Display.DisplayBase):
@@ -20,6 +37,7 @@ class NBDisplay(Display.DisplayBase):
     """
     init = False
     app = None
+    displayDir = None
     staticDir = None
     __uidCounter__ = 0
     port = None
@@ -62,14 +80,21 @@ class NBDisplay(Display.DisplayBase):
             NBDisplay.init = True
             
             #dir in which images are stored
-            NBDisplay.staticDir = tempfile.mkdtemp()
-            NBDisplay.app = Application(static_path = NBDisplay.staticDir,
+            NBDisplay.displayDir = tempfile.mkdtemp()
+            NBDisplay.staticDir = os.path.dirname(__file__) + os.sep + 'static'
             
-            #all images are accesses with the /diplay/
-            static_url_prefix = "/display/")
+            
+            handlers = [
+             (r"/display/(.*)", tornado.web.StaticFileHandler, {"path": NBDisplay.displayDir}) ,
+             (r"/static/(.*)", tornado.web.StaticFileHandler, {"path": NBDisplay.staticDir}) 
+            ]
+            
+            
+            NBDisplay.app = Application(handlers)
             
             NBDisplay.port = tornado.testing.get_unused_port()
             NBDisplay.app.listen(NBDisplay.port)
+            #print NBDisplay.port
             
             #start a thread for tornado
             threading.Thread(target=tornado.ioloop.IOLoop.instance().start).start()
@@ -97,11 +122,10 @@ class NBDisplay(Display.DisplayBase):
         
         
         #this pops up a window
-        self.startStr = """
+        self.startStr = r"""
         window.disp%(id)s = window.open('','%(title)s','width=%(width)s,height=%(height)s')
         window.disp%(id)s.document.write("%(code)s")
         """ % options
-        
         display(JS(self.startStr))
         
         #otherwise the browser complains if showImage is called right after this
@@ -133,7 +157,7 @@ class NBDisplay(Display.DisplayBase):
         """
         
         # so that only the last few images are saved, newer ones over-write the old ones
-        img.save(NBDisplay.staticDir + os.sep + str(img.getUID() % NBDisplay.__cache__) + '.png' )
+        img.save(NBDisplay.displayDir + os.sep + str(img.getUID() % NBDisplay.__cache__) + '.png', draw = False )
         #print uid%10
         options = {}
         options['imageID'] = img.getUID()
@@ -143,7 +167,14 @@ class NBDisplay(Display.DisplayBase):
         command = "window.disp%(displayID)s.show(%(imageID)s,%(width)s,%(height)s)" % options
         #print command
         #pass the id to javascript and do the rest there
+        
+        
+        drawCode =  getPCode(img)
+        drawCommand = "window.disp%d.CODE = '%s'" % (self.getUID(),drawCode)
+        display(JS(drawCommand))
         display(JS(command))
+        #sleep(1)
+        
 
     def mousePosition(self):
         """
